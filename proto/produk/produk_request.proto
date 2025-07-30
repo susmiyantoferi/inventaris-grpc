@@ -1,0 +1,10 @@
+syntax = "proto3";
+package produk;
+
+option go_package = "inventarispb/produkpb";
+
+message GetProdukReq {
+    int64 id = 1;
+} 
+
+message Empty {}

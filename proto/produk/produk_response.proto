@@ -1,0 +1,17 @@
+syntax = "proto3";
+package produk;
+
+option go_package = "inventarispb/produkpb";
+
+message Produk {
+    int64 id = 1;
+    string nama = 2;
+    string deskripsi = 3;
+    double harga = 4;
+    string kategori = 5;
+    string gambar = 6;
+}
+
+message ProdukList {
+    repeated Produk data = 1;
+}

@@ -1,0 +1,12 @@
+syntax = "proto3";
+package produk;
+
+import "produk/produk_request.proto";
+import "produk/produk_response.proto";
+
+option go_package = "inventarispb/produkpb";
+
+service ProdukService{
+    rpc GetProdukById(GetProdukReq) returns (Produk);
+    rpc GetAllProduk(Empty) returns (ProdukList);
+}
