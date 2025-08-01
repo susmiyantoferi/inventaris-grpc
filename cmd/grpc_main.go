@@ -8,6 +8,7 @@ import (
 	"inventaris/service"
 	"log"
 	"net"
+	logging "inventaris/logging"
 
 	"github.com/go-playground/validator/v10"
 	"google.golang.org/grpc"
@@ -15,10 +16,11 @@ import (
 
 func main() {
 	
-	database := app.Db()
+	database := app.DbGrpc()
 	validate := validator.New()
+	logging := logging.ConsoleLogging{}
 	produkRepo := repository.NewProdukRepositoryImpl(database)
-	produkService := service.NewProdukServiceImpl(produkRepo, validate)
+	produkService := service.NewProdukServiceImpl(produkRepo, validate, &logging)
 	produkGrpcController := controller.NewProdukGRPCServer(produkService)
 
 	lis, err := net.Listen("tcp", ":50051")

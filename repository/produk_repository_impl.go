@@ -2,7 +2,6 @@ package repository
 
 import (
 	"errors"
-	"inventaris/helper"
 	"inventaris/models"
 
 	"gorm.io/gorm"
@@ -16,10 +15,15 @@ func NewProdukRepositoryImpl(db *gorm.DB) *ProdukRepositoryImpl {
 	return &ProdukRepositoryImpl{DB: db}
 }
 
-func (p *ProdukRepositoryImpl) Create(produk models.Produk) models.Produk {
+func (p *ProdukRepositoryImpl) Create(produk models.Produk) (models.Produk, error) {
 	result := p.DB.Create(&produk)
-	helper.PanicErr(result.Error)
-	return produk
+	if result.Error != nil{
+		if errors.Is(result.Error, gorm.ErrInvalidData) {
+			return models.Produk{}, errors.New("bad request")
+		}
+		return models.Produk{}, result.Error		
+	}
+	return produk, nil
 }
 
 func (p *ProdukRepositoryImpl) Update(produk models.Produk) (models.Produk, error) {

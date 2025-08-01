@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"inventaris/helper"
+	log "inventaris/logging"
 	"inventaris/models"
 	"inventaris/repository"
 	"inventaris/web"
@@ -16,23 +17,27 @@ import (
 type ProdukServiceImpl struct {
 	ProdukRepository repository.ProdukRepository
 	Validate         *validator.Validate
+	Logging log.Logging
 }
 
-func NewProdukServiceImpl(produkRepository repository.ProdukRepository, validate *validator.Validate) *ProdukServiceImpl {
+func NewProdukServiceImpl(produkRepository repository.ProdukRepository, validate *validator.Validate, logging log.Logging) *ProdukServiceImpl {
 	return &ProdukServiceImpl{
 		ProdukRepository: produkRepository,
 		Validate:         validate,
+		Logging: logging,
 	}
 }
 
 func (p *ProdukServiceImpl) Create(r web.CreateProdukRequest) (web.ProdukResponse, error) {
 	err := p.Validate.Struct(r)
 	if err != nil {
+		p.Logging.ErrInfo(err, "validation failed")
 		return web.ProdukResponse{}, err
 	}
 
 	hargacvt, errs := decimal.NewFromString(r.Harga)
 	if errs != nil {
+		p.Logging.ErrInfo(err, "failed convert to decimal")
 		return web.ProdukResponse{}, errs
 	}
 
@@ -43,7 +48,17 @@ func (p *ProdukServiceImpl) Create(r web.CreateProdukRequest) (web.ProdukRespons
 		Kategori:  r.Kategori,
 	}
 
-	result := p.ProdukRepository.Create(produk)
+	result, err := p.ProdukRepository.Create(produk)
+	if err != nil {
+		if errors.Is(err, gorm.ErrInvalidData){
+			p.Logging.ErrInfo(err, "invalid input request" )
+			return web.ProdukResponse{}, errors.New("bad request")
+		}
+
+		p.Logging.ErrInfo(err, "internal error")
+		return web.ProdukResponse{}, err
+	}
+	p.Logging.MsgInfo("Created")
 	response := helper.ToProdukResponse(result)
 
 	return response, nil
@@ -98,9 +113,15 @@ func (p *ProdukServiceImpl) Delete(produkId int) error {
 func (p *ProdukServiceImpl) FindById(produkId int) (web.ProdukResponse, error) {
 	produk, err := p.ProdukRepository.FindById(produkId)
 	if err != nil {
+		if errors.Is(err, repository.ErrorIdNotFound) {
+			p.Logging.ErrInfo(err, "id not found")
+			return web.ProdukResponse{}, repository.ErrorIdNotFound
+		}
+		p.Logging.ErrInfo(err, "internal error")
 		return web.ProdukResponse{}, err
 	}
 
+	p.Logging.MsgInfo("success find id")
 	response := helper.ToProdukResponse(produk)
 
 	return response, nil

@@ -8,6 +8,7 @@ import (
 	"inventaris/service"
 	"log"
 	"os"
+	logging "inventaris/logging"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -20,9 +21,10 @@ func main(){
 
 	database := app.Db()
 	validate := validator.New()
+	logging := logging.ConsoleLogging{}
 	
 	produkRepo := repository.NewProdukRepositoryImpl(database)
-	produkService := service.NewProdukServiceImpl(produkRepo, validate)
+	produkService := service.NewProdukServiceImpl(produkRepo, validate, &logging)
 	produkController := controller.NewProdukControllerImpl(produkService)
 
 	inventRepo := repository.NewInventarisRepositoryImpl(database)

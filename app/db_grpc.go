@@ -12,11 +12,11 @@ import (
 	"gorm.io/gorm"
 )
 
-var DB *gorm.DB
+var DBGrpc *gorm.DB
 
-func Db() *gorm.DB {
+func DbGrpc() *gorm.DB {
 
-	err := godotenv.Load()
+	err := godotenv.Load("../.env")
 	if err != nil {
 		log.Fatal("error load env")
 	}

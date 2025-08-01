@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"errors"
 	"fmt"
 	"inventaris/helper"
 	"inventaris/service"
@@ -10,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type ProdukControllerImpl struct {
@@ -31,6 +33,9 @@ func (p ProdukControllerImpl) Create(ctx *gin.Context) {
 
 	result, err := p.ProdukService.Create(produkReq)
 	if err != nil {
+		if errors.Is(err, gorm.ErrInvalidData) {
+			helper.ResponseJSON(ctx, http.StatusBadRequest, "bad request", err.Error())
+		}
 		helper.ResponseJSON(ctx, http.StatusInternalServerError, "Create Failed", err.Error())
 		return
 	}
